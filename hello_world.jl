@@ -3,4 +3,5 @@
 # Created on 04.05.2022 by clem (mail@clemens-cords.com)
 #
 
-println("setup")
+#ccall(:system, Int32, (Cstring,), "clear")
+Base.atreplinit((_) -> (ccall(:system, Int32, (Cstring,), "clear")))

@@ -1,0 +1,6 @@
+[submodule "Starlight.jl"]
+	path = Starlight.jl
+	url = https://github.com/jhigginbotham64/Starlight.jl
+[submodule "rat_game_julia_fork"]
+	path = rat_game_julia_fork
+	url = https://github.com/Clemapfel/rat_game_julia_fork

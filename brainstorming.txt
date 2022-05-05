@@ -1,0 +1,20 @@
+custom shell
+	custom ascii word art
+
+
+具  倆
+ju lia
+
+
+
+  jù           liǎ      |
+  ___       _________   |  具倆 (jù-liǎ) Medical Inc.
+ |___|    /_____|____   |   "Together towards a purer
+ |___|   /|| _  | _  |  |      society and human!"™
+ |___|  / ||  | |  | |  |
+⎼⎼⎼⎼⎼⎼⎼   || /\ | /\ |  |  Version 9.1.2 (2063-02-29)
+ /   \    ||´  `|´  `|  |  Type "help()" for help.
+´     `   |'    '   _|  |
+
+
+
