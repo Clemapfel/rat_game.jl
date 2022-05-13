@@ -4,13 +4,7 @@
 import REPL
 using REPL.TerminalMenus
 
-
-module °°°°° end
-module °°°° end
-module °° end
-module ° end
-
-module °°°
+#module °
 
     # clear screen
     function cclear()
@@ -23,14 +17,13 @@ module °°°
     end
 
     # print text, animated
-    function animate_text(text::String, delay::Real = 0.03) ::Nothing
+    function animate_text(text::String) ::Int
 
+        delay::Real = 0.03
         for i in 1:length(text)
 
             print("\r")
-            for j in 1:i
-                print(text[j])
-            end
+            for j in 1:i print(text[j]) end
 
             c = text[i]
             if c == ',' || c == '.' || c == ';' || c == '!' || c == '?'
@@ -39,6 +32,25 @@ module °°°
                 sleep(delay)
             end
         end
+
+        return length(text)
+    end
+    animate_text("What is a Julia? What does it know? Does it know things? ... We just don't know.");
+
+    # replace base exit methods
+    function override_exit()
+        Base.eval(quote
+            function exit()
+                t = Threads.@spawn begin
+                    n = animate_text("logging off...")
+                end
+
+                wait(t)
+                ccall(:system, Int32, (Cstring,), "clear");
+                ccall(:exit, Int32, (Int32,), 1)
+            end
+        end);
+        Base.eval(:(exit(n) = exit()));
     end
 
     # multiple choice menu
@@ -70,65 +82,62 @@ module °°°
         menu._behavior[res]()
     end
 
-    #
-    function
-end
+    function override_all_methods(m::Module, function_name::Symbol)
 
+        method_list = methods(m.eval(function_name));
+        exprs = Expr[];
+        for method in method_list
 
-function override_exit()
-    Base.eval(quote
-        function exit()
-            t = Threads.@spawn for i in 1:3
+            rep = 1
+            args = Expr[]
 
-                print("\rlogging off")
-                sleep(0.2)
+            skip_first = true
+            for type in method.sig.parameters
 
-                print("\rlogging off.")
-                sleep(0.2)
+                if skip_first
+                   skip_first = false
+                   continue
+                end
 
-                print("\rlogging off..")
-                sleep(0.2)
-
-                print("\rlogging off...")
-                sleep(0.2)
+                push!(args, Expr(Symbol("::"), Symbol(repeat("_", rep)), Symbol(type)))
+                rep += 1
             end
 
-            wait(t)
-            ccall(:system, Int32, (Cstring,), "clear");
-            ccall(:exit, Int32, (Int32,), 1)
+            body = Expr(:block, Expr(:call, :throw, Expr(:call, :UndefVarError, Expr(:call, :Symbol, string(method.name)))))
+            front = Expr(:call, method.name, args...)
+            out = Expr(:(=), front, body)
+
+            try
+                m.eval(out)
+            catch (_) end
         end
-    end);
-    Base.eval(:(exit(n) = exit()));
-end
-
-function override_all_methods(m::Module, function_name::Symbol)
-
-    method_list = methods(m.eval(function_name));
-    exprs = Expr[];
-    for method in method_list
-
-        rep = 1
-        args = Expr[]
-
-        skip_first = true
-        for type in method.sig.parameters
-
-            if skip_first
-               skip_first = false
-               continue
-            end
-
-            push!(args, Expr(Symbol("::"), Symbol(repeat("_", rep)), Symbol(type)))
-            rep += 1
-        end
-
-        body = Expr(:block, Expr(:call, :throw, Expr(:call, :UndefVarError, Expr(:call, :Symbol, string(method.name)))))
-        front = Expr(:call, method.name, args...)
-        m.eval(Expr(:(=), front, body))
     end
-end
 
+    function override_variable(m::Module, var_name::Symbol)
 
+        if !isconst(m, var_name)
+            m.eval(Expr(:($var_name = nothing)))
+        end
+    end
+
+    _skip_functions = Symbol[
+        :include,
+        :print,
+        :println,
+        :eval
+    ]
+
+    function nuke(m::Module)
+
+        for name in names(m; all = true)
+            if m.eval(name) isa Function
+                if !(name in _skip_functions)
+                    override_all_methods(m, name)
+                end
+            end
+        end
+    end
+#end
 
 println(repeat("ERROR ", 10000));
 cclear();
@@ -147,4 +156,10 @@ let ps = printstyled
     ps("   ╱   ╲    ││´  `│´  `│   "; bold = true, blink = true, color=:cyan);ps("┃  Type \"help()\" for help.     \n");
     ps("  ´     `   │╵    ╵    ┘   "; bold = true, blink = true, color=:magenta);ps("┃  \n");
     println();
+end
+
+
+module Test
+    test(x) = return x
+    test(x, y) = return x*y
 end
